@@ -4,6 +4,7 @@ import time
 import json
 import os
 
+import twitchio
 from twitchio.ext import commands
 from dotenv import load_dotenv
 from gtts import gTTS
@@ -26,12 +27,22 @@ class Jazzica(commands.Bot):
     async def event_ready(self):
         print(f"Bot is ready! Logged in as {self.nick}")
 
-    async def event_message(self, message):
+    async def event_message(self, message: twitchio.Message):
         print(f"Message received from {message.author.name} ({message.echo}): {message.content}")
+
+        print(message.channel.name)
+        print(message.author.name)
 
         if message.echo:
             return
 
+        # Handle user messages here
+
+        if not (message.channel.name == message.author.name):
+            return
+
+        # Handle broadcaster messages here
+        
         # if message.content.startswith("!ask "):
         #     query = message.content[5:]
         #     response = await self.get_gemini_response(query)
@@ -68,22 +79,11 @@ class Jazzica(commands.Bot):
             f"How does it feel to be the most awesome person in the chat, {username}?",
             f"{username}, if I could give you a high-five, I totally would!",
         ]
-        return compliments[time.time() % len(compliments)]
+        return compliments[int(time.time()) % len(compliments)]
 
     def get_cat_fact(self):
         return cat_facts[int(time.time()) % len(cat_facts)]
 
-    def text_to_speech(self, text: str):
-        try:
-            tts = gTTS(text)
-            tts.save("response.mp3")
-            if os.name == 'nt':  # Windows
-                os.system("start response.mp3")
-            else:  # For macOS or Linux
-                os.system("mpg123 response.mp3")
-        except Exception as e:
-            print(f"Error with TTS: {e}")
-            return "Sorry, I couldn't speak that out loud."
 
 if __name__ == "__main__":
     load_dotenv()

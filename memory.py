@@ -63,15 +63,14 @@ class MemoryManager:
         self.long_term_memory_db = long_term_memory_db
         
     def add_memory_entry(self, user_id, channel_id, data):
-        
+        pass
+    
+# short_term_memory = ShortTermMemory()
+# short_term_memory.add("User likes coding.")
+# short_term_memory.add("User played Minecraft last night.")
 
+# print(short_term_memory.get_recent())
 
-short_term_memory = ShortTermMemory()
-short_term_memory.add("User likes coding.")
-short_term_memory.add("User played Minecraft last night.")
-
-print(short_term_memory.get_recent())
-
-long_term_memory = LongTermMemory()
-long_term_memory.save_memory('favorite_game', 'Minecraft')
-print(long_term_memory.get_memory('favorite_game'))
+# long_term_memory = LongTermMemory()
+# long_term_memory.save_memory('favorite_game', 'Minecraft')
+# print(long_term_memory.get_memory('favorite_game'))
