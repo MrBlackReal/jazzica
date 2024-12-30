@@ -10,28 +10,24 @@ from dotenv import load_dotenv
 from gtts import gTTS
 from config import *
 
+from utils import get_random_entry
+
 class Jazzica(commands.Bot):
-    def __init__(self, twitch_key:str, client_id: str, gemini_key: str, system_instructions: str):
-        super().__init__(token=twitch_key, client_id=client_id, prefix='!', initial_channels=['mrblackreal'])
+    def __init__(self, twitch_key:str, client_id: str, client_secret: str, gemini_key: str, system_instructions: str):
+        super().__init__(token=twitch_key, client_id=client_id, client_secret=client_secret, prefix='!', initial_channels=['mrblackreal'])
         self.gemini_api_key = gemini_key
 
         genai.configure(api_key=self.gemini_api_key)
 
         self.personality = system_instructions
-        self.brain = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
-            system_instruction=self.personality,
-        )
+        self.brain = genai.GenerativeModel(model_name="gemini-1.5-flash", system_instruction=self.personality)
         self.last_query_time = -1
 
-    async def event_ready(self):
+    async def event_ready(self: commands.Bot):
         print(f"Bot is ready! Logged in as {self.nick}")
 
     async def event_message(self, message: twitchio.Message):
         print(f"Message received from {message.author.name} ({message.echo}): {message.content}")
-
-        print(message.channel.name)
-        print(message.author.name)
 
         if message.echo:
             return
@@ -56,12 +52,12 @@ class Jazzica(commands.Bot):
         #     fact = self.get_cat_fact()
         #     await message.channel.send(fact)
 
-    async def get_gemini_response(self, prompt):
+    async def get_gemini_response(self, prompt: str):
         current_time = time.time()
         time_since_last_query = current_time - self.last_query_time
 
         if time_since_last_query < 10:
-            return ratelimit_response[time.time() % len(ratelimit_response)]
+            return get_random_entry(ratelimit_response)
 
         self.last_query_time = current_time
 
@@ -72,17 +68,18 @@ class Jazzica(commands.Bot):
             print(f"Error: {e}")
             return "Oops, something went wrong while talking to my brain..."
 
-    def get_compliment(self, username):
+    def get_compliment(self, username: str) -> str:
         compliments = [
             f"{username}, you're an absolute legend!",
             f"Hey {username}, you're basically the reason the sun shines.",
             f"How does it feel to be the most awesome person in the chat, {username}?",
             f"{username}, if I could give you a high-five, I totally would!",
         ]
-        return compliments[int(time.time()) % len(compliments)]
+        
+        return get_random_entry(compliments)
 
-    def get_cat_fact(self):
-        return cat_facts[int(time.time()) % len(cat_facts)]
+    def get_cat_fact(self) -> str:
+        return get_random_entry(cat_facts)
 
 
 if __name__ == "__main__":
@@ -106,5 +103,5 @@ if __name__ == "__main__":
     # access_token = response["access_token"]
     # expires_in = json_response["expires_in"] 
 
-    bot = Jazzica(twitch_key=twitch_key, client_id=twitch_client_id, gemini_key=gemini_key, system_instructions=system_instruction)
+    bot = Jazzica(twitch_key=twitch_key, client_id=twitch_client_id, gemini_key=gemini_key, client_secret=twitch_client_secret, system_instructions=system_instruction)
     bot.run()
