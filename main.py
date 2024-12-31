@@ -12,12 +12,16 @@ from config import *
 
 from utils import get_random_entry
 
+from memory import MemoryManager
+
 class Jazzica(commands.Bot):
     def __init__(self, twitch_key:str, client_id: str, client_secret: str, gemini_key: str, system_instructions: str):
         super().__init__(token=twitch_key, client_id=client_id, client_secret=client_secret, prefix='!', initial_channels=['mrblackreal'])
         self.gemini_api_key = gemini_key
 
         genai.configure(api_key=self.gemini_api_key)
+
+        self.memory_manager = MemoryManager()
 
         self.personality = system_instructions
         self.brain = genai.GenerativeModel(model_name="gemini-1.5-flash", system_instruction=self.personality)
@@ -33,9 +37,7 @@ class Jazzica(commands.Bot):
             return
 
         # Handle user messages here
-
-        if not (message.channel.name == message.author.name):
-            return
+        self.memory_manager.add_memory_entry(message.author.id, message.content)
 
         # Handle broadcaster messages here
         
