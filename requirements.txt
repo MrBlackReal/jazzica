@@ -3,3 +3,5 @@ requests
 twitchio
 gtts
 python-dotenv
+numpy
+torch

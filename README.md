@@ -8,4 +8,8 @@
 
 - Interaction with viewers
 
-# Workflow for Jazzicas memory
+## Workflow for Jazzicas memory
+- look in /memory/
+
+## Personality
+- Likes (trommelwirbel) jazz

@@ -24,6 +24,12 @@ class ShortTermMemory:
     def get_recent(self):
         return [item[0] for item in self.memory]
 
+    def get_by_id(self, id):
+        """
+        Obtains all memories of an given user
+        """
+        return [item[0][1] for item in self.memory if item[0][0] == id]
+
 
 class LongTermMemory:
     def __init__(self, memory_file="memory/long_term_memory.db"):
@@ -83,17 +89,27 @@ class MemoryManager:
     
     excessive_punctuation = re.compile(r"^[!?.,]{3,}$")
 
-    def add_memory_entry(self, user_id, data):
+    def add_memory_entry(self, user_id, data: str):
+        normalized_data = data.strip().lower()
+
+        is_emoji = self.is_emoji(normalized_data)
+
+        if is_emoji:
+            return
+
         # Add to short-term memory
         self.short_term_memory.add([user_id, data])
 
         # Example: Filter and decide relevance for long-term memory
-        if self.is_relevant(data):
-            self.long_term_memory.save_memory(key=f"{user_id}.{int(time.time())}", value=data)
+        is_relevant = self.is_relevant(normalized_data)
 
-        self.long_term_memory.get_memory(user_id)
+        if is_relevant:
+            self.long_term_memory.save_memory(key=f"{user_id}\0{int(time.time())}", value=normalized_data)
 
-    def is_relevant(self, data):
+    def is_emoji(self, data: str) -> bool:
+        return self.emoji_pattern.fullmatch(data) != None
+
+    def is_relevant(self, data: str) -> bool:
         """
         Advanced relevance logic:
         - Remove messages that are purely emojis or excessive punctuation.
@@ -101,36 +117,43 @@ class MemoryManager:
         - Detect and exclude spam-like or trivial messages.
         """
         # Define patterns to exclude irrelevant content
-        trivial_phrases = ["lol", "brb", "spam", "asdf", "hahaha", "lmao"]
-
-        # Strip whitespace and normalize input
-        normalized_data = data.strip().lower()
+        trivial_phrases = ["lol", "brb", "spam", "asdf", "hahaha", "lmao", "xD"]
 
         # Check for irrelevant content
-        if not normalized_data:  # Empty message
+        if not data:  # Empty message
             return False
 
-        if self.emoji_pattern.fullmatch(normalized_data):  # Purely emojis
+        if self.is_emoji(data):  # Purely emojis
             return False
 
-        if self.excessive_punctuation.fullmatch(normalized_data):  # Excessive punctuation
+        if self.excessive_punctuation.fullmatch(data):  # Excessive punctuation
             return False
 
-        if normalized_data in trivial_phrases:  # Trivial phrases
+        if data in trivial_phrases:  # Trivial phrases
             return False
 
         # Check if the message has at least one word with alphabetical characters
-        meaningful_content = any(word.isalpha() for word in normalized_data.split())
+        meaningful_content = any(word.isalpha() for word in data.split())
         
         return meaningful_content
 
 
 # short_term_memory = ShortTermMemory()
-# short_term_memory.add("User likes coding.")
-# short_term_memory.add("User played Minecraft last night.")
+# short_term_memory.add([2, "User likes coding."])
+# short_term_memory.add([2, "User played Minecraft last night."])
+# short_term_memory.add([3, "User played Fortnite last night."])
+# short_term_memory.add([4, "User played R6 last night."])
 
-# print(short_term_memory.get_recent())
+# print(short_term_memory.get_by_id(2))
+# print(short_term_memory.get_by_id(3))
+# print(short_term_memory.get_by_id(4))
 
 # long_term_memory = LongTermMemory()
 # long_term_memory.save_memory('favorite_game', 'Minecraft')
 # print(long_term_memory.get_memory('favorite_game'))
+
+# memory_manager = MemoryManager()
+
+# memory_manager.add_memory_entry("1", "🤣asd🤣asd🤣asd🤣🤣")
+# memory_manager.add_memory_entry("2", "i love fortnite xD")
+# memory_manager.add_memory_entry("3", "I am an tech enthusiast")

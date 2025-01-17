@@ -11,8 +11,8 @@ from gtts import gTTS
 from config import *
 
 from utils import get_random_entry
-
 from memory import MemoryManager
+from tts import load_model, tts
 
 class Jazzica(commands.Bot):
     def __init__(self, twitch_key:str, client_id: str, client_secret: str, gemini_key: str, system_instructions: str):
@@ -26,6 +26,8 @@ class Jazzica(commands.Bot):
         self.personality = system_instructions
         self.brain = genai.GenerativeModel(model_name="gemini-1.5-flash", system_instruction=self.personality)
         self.last_query_time = -1
+
+        load_model()
 
     async def event_ready(self: commands.Bot):
         print(f"Bot is ready! Logged in as {self.nick}")
@@ -83,10 +85,11 @@ class Jazzica(commands.Bot):
     def get_cat_fact(self) -> str:
         return get_random_entry(cat_facts)
 
+    def talk(message: str) -> void:
+        tts(message=message, file_name=int(message))
 
-if __name__ == "__main__":
-    load_dotenv()
 
+def main():
     twitch_key = os.getenv("TWITCH_TOKEN")
     gemini_key = os.getenv("GEMINI_API_KEY")
 
@@ -107,3 +110,9 @@ if __name__ == "__main__":
 
     bot = Jazzica(twitch_key=twitch_key, client_id=twitch_client_id, gemini_key=gemini_key, client_secret=twitch_client_secret, system_instructions=system_instruction)
     bot.run()
+
+
+if __name__ == "__main__":
+    load_dotenv()
+
+    main()
